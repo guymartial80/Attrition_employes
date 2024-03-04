@@ -27,6 +27,9 @@ def count_and_percentage(df, column_name):
 def plot_histogram_by_category(df, column_name):
     # Créer un countplot avec la variable catégorielle en x et Attrition en hue
     ax = sns.countplot(x=column_name, hue="Attrition", data=df)
+
+    # Ajouter les libellés sur l'axe des abscisses dans le sens vertical
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=90, ha="right")
     
     # Ajouter des annotations à chaque barre de l'histogramme
     for p in ax.patches:
@@ -48,6 +51,7 @@ def plot_histogram_by_category(df, column_name):
     plt.show()
 
 
+
 def categorical_variables(df):
     # Sélectionner les colonnes de type 'object'
     categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
@@ -56,3 +60,18 @@ def categorical_variables(df):
     print("Liste des variables catégorielles :")
     for col in categorical_cols:
         print("- {}".format(col))
+
+
+
+def select_numeric_columns(df):
+    numeric_columns = df.select_dtypes(include=['number']).columns
+    return df[numeric_columns]
+
+
+
+def plot_correlation_matrix(df):
+    plt.figure(figsize=(20,20))
+    mask = np.triu(np.ones_like(df.corr(), dtype=bool))
+    sns.heatmap(df.corr(), mask=mask, center=0, cmap='RdBu', annot=True, fmt=".2f", vmin=-1, vmax=1)
+    plt.title('Matrice des corrélations', fontsize = 18, fontweight = 'bold')
+    plt.show()
