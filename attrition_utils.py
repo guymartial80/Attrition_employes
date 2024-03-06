@@ -75,3 +75,54 @@ def plot_correlation_matrix(df):
     sns.heatmap(df.corr(), mask=mask, center=0, cmap='RdBu', annot=True, fmt=".2f", vmin=-1, vmax=1)
     plt.title('Matrice des corrélations', fontsize = 18, fontweight = 'bold')
     plt.show()
+
+
+
+def detect_and_transform_binary_categorical(df):
+
+    # Fonction qui détecte les colonnes ayant pour modalités "Yes" et "No"
+    def detect_binary_categorical(df):
+        binary_categorical_variables = []
+        
+        for column in df.columns:
+            # Vérifier si la colonne est de type catégorielle
+            if df[column].dtype == object:
+                # Vérifier si la colonne a exactement deux modalités distinctes
+                unique_values = df[column].unique()
+                if len(unique_values) == 2:
+                    binary_categorical_variables.append(column)
+        
+        return binary_categorical_variables
+
+    # Fonction qui encode les colonnes ayant pour modalités "Yes" et "No" en "0" et "1"
+    def transform_binary_categorical(column):
+        if set(column.unique()) == set(['Male', 'Female']):  # Vérifier si la variable a les modalités "Male" et "Female"
+            mapping_function = lambda x: 1 if x == 'Male' else 0
+        elif set(column.unique()) == set(['Yes', 'No']):  # Vérifier si la variable a les modalités "Yes" et "No"
+            mapping_function = lambda x: 1 if x == 'Yes' else 0
+        else:
+            raise ValueError("La variable ne contient pas les modalités attendues (Male/Female ou Yes/No)")
+        
+        # Appliquer la fonction de mapping à la colonne
+        transformed_column = column.apply(mapping_function)
+        
+        return transformed_column
+    
+    # Détecter les variables catégorielles binaires
+    binary_categorical_variables = detect_binary_categorical(df)
+    
+    # Copier le DataFrame original pour éviter de le modifier directement
+    encoded_df = df.copy()
+    
+    # Pour chaque variable catégorielle binaire détectée
+    for column_name in binary_categorical_variables:
+        # Sélectionner la colonne correspondante
+        column = encoded_df[column_name]
+        
+        # Transformer la colonne binaire
+        transformed_column = transform_binary_categorical(column)
+        
+        # Remplacer la colonne originale par la colonne transformée
+        encoded_df[column_name] = transformed_column
+    
+    return encoded_df
