@@ -216,6 +216,22 @@ def remove_outliers(df):
 
 
 def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variables, cat_vars):
+    """
+    Cette fonction affichera les métriques, la courbe ROC et la matrice de confusion pour chaque modèle, 
+    puis sélectionnera le meilleur modèle en fonction de l'exactitude de la validation et du temps d'exécution.
+    
+    Args:
+    - X_train et y_train: Base d'entrainement.
+    - X_val et y_val: Base de validation.
+    - X_test et y_test: Base de test.
+    - numerical_variables: Variables de type numérique du dataset.
+    - cat_vars: Variables de type catégoriel en dehors de la variable cible "Attritioon".
+    
+    Returns:
+    - best_model: Nom du meilleur modèle pandas avec les outliers remplacés par s. best_model, model_acc, model_time
+    - model_acc: Meilleur score
+    - best_model: Meilleur temps d'exécution
+    """
     models = [
         ('La Regression Logistique', LogisticRegression()),
         ('La Forêt Aléatoire', RandomForestClassifier())
@@ -293,6 +309,10 @@ def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variable
     # Affichage du meilleur modèle
     print("================================")
     print("Best Model:", model_name)
+    print("--------------------------------")
+    print("Best Accuracy:", best_accuracy)
+    print("--------------------------------")
+    print("Best Runtime:", best_runtime)
     print("================================")
     
     return best_model, model_acc, model_time
