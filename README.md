@@ -2,7 +2,7 @@
 
 Cette étude se concentre sur l'attrition des employés chez IBM, visant à identifier les variables qui influencent la décision d'un employé de quitter l'entreprise. En utilisant les données fournies, nous chercherons à construire un modèle prédictif capable d'estimer avec précision la probabilité qu'un employé quitte son poste.
 
-2. ## ETAPES DE REALISATION
+## 2. ETAPES DE REALISATION
 
 ### 2.1 Importation des librairies
 Les packages de base ont été importés dans un premier temps, notamment Pandas, numpy, Matplolib, Seaborn.
