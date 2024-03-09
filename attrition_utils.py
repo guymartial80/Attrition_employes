@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import metrics
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
@@ -11,6 +12,46 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve
 import time
+
+def importer_affichage_dataset(chemin_fichier):
+    """
+    Cette fonction importe un fichier Excel ou CSV et affiche les 5 premières lignes du DataFrame.
+    
+    Args:
+    - chemin_fichier : Chemin vers le fichier à importer (Excel ou CSV).
+    
+    Returns:
+    - df : DataFrame contenant les données du fichier.
+    """
+    # Vérifier l'extension du fichier pour déterminer le type de fichier
+    if chemin_fichier.endswith('.xlsx'):
+        # Importer un fichier Excel
+        df = pd.read_excel(chemin_fichier)
+    elif chemin_fichier.endswith('.csv'):
+        # Importer un fichier CSV
+        df = pd.read_csv(chemin_fichier)
+    else:
+        raise ValueError("Le fichier doit être au format Excel (.xlsx) ou CSV (.csv)")
+    
+    
+    return df
+
+
+
+def plot_categorical_column(df, column):
+        """
+        Fonction interne pour tracer le graphique de la variable catégorielle.
+        """
+        plt.figure(figsize=(5, 3))
+        # Créer un countplot avec la variable catégorielle en x et Attrition en hue
+        ax = sns.countplot(y=column, hue=column, data=df)
+
+        # Ajouter les libellés sur l'axe des abscisses dans le sens vertical
+        plt.xlabel('Effectif des employés par modalités')
+        plt.ylabel(column)
+        plt.title(f'Comptage des valeurs de {column}')
+        plt.show()
+
 
 
 # analyses univariés
@@ -21,20 +62,6 @@ def univariate_statistics(df):
     Args:
     - df: DataFrame pandas à analyser.
     """
-    def plot_categorical_column(df, column):
-        """
-        Fonction interne pour tracer le graphique de la variable catégorielle.
-        """
-        plt.figure(figsize=(5, 3))
-        # Créer un countplot avec la variable catégorielle en x et Attrition en hue
-        ax = sns.countplot(x=column, hue=column, data=df)
-
-        # Ajouter les libellés sur l'axe des abscisses dans le sens vertical
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=90, ha="right")
-        plt.xlabel(column)
-        plt.ylabel('Nombre d\'occurrences')
-        plt.title(f'Comptage des valeurs de {column}')
-        plt.show()
 
     for column in df.columns:
         if df[column].dtype == object:
@@ -68,31 +95,50 @@ def bivariate_statistics(df):
     """
     # Récupérer les noms des colonnes catégorielles
     categorical_columns = df.select_dtypes(include=['object']).columns
+    # Exclure la variable 'Attrition' de la liste des colonnes catégorielles
+    categorical_columns_except_attrition = categorical_columns.drop('Attrition') 
     
     # Pour chaque colonne catégorielle
-    for column_name in categorical_columns:
-        plt.figure(figsize=(5, 3))
-        # Créer un countplot avec la variable catégorielle en x et Attrition en hue
-        ax = sns.countplot(x=column_name, hue="Attrition", data=df)
-
-        # Ajouter les libellés sur l'axe des abscisses dans le sens vertical
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=90, ha="right")
+    for column_name in categorical_columns_except_attrition:
+        # ============================
+        # Compter les occurrences de chaque catégorie pour Attrition = "Yes"
+        value_counts_yes = df[df['Attrition'] == 'Yes'][column_name].value_counts()
+        # Calculer les pourcentages pour Attrition = "Yes"
+        percentages_yes = (df[df['Attrition'] == 'Yes'][column_name].value_counts(normalize=True) * 100).round(2)
         
-        # Ajouter des annotations à chaque barre de l'histogramme
-        for p in ax.patches:
-            ax.annotate(format(p.get_height(), '.0f'), 
-                        (p.get_x() + p.get_width() / 2., p.get_height()), 
-                        ha = 'center', va = 'center', 
-                        xytext = (0, 5), 
-                        textcoords = 'offset points')
+        # Compter les occurrences de chaque catégorie pour Attrition = "No"
+        value_counts_no = df[df['Attrition'] == 'No'][column_name].value_counts()
+        # Calculer les pourcentages pour Attrition = "No"
+        percentages_no = (df[df['Attrition'] == 'No'][column_name].value_counts(normalize=True) * 100).round(2)
+        
+        # Créer un DataFrame à partir des comptages et pourcentages pour Attrition = "Yes"
+        result_yes = pd.concat([value_counts_yes, percentages_yes], axis=1)
+        result_yes.columns = ['Attrition_Yes', 'Ratio_Yes']
+        
+        # Créer un DataFrame à partir des comptages et pourcentages pour Attrition = "No"
+        result_no = pd.concat([value_counts_no, percentages_no], axis=1)
+        result_no.columns = ['Attrition_No', 'Ration_No']
+        
+        # Fusionner les deux DataFrames sur les index (valeurs de catégories)
+        result = pd.concat([result_yes, result_no], axis=1, sort=False)
+        
+        # Afficher les résultats
+        print(f"Tableau de comptage des valeurs avec pourcentages pour la variable '{column_name}':\n")
+        print(result)
+        print("\n")
+        
+        # Tracer le graphique de la variable catégorielle en fonction de l'attrition
+        plt.figure(figsize=(6, 4))
+        # Créer un countplot avec la variable catégorielle en y et Attrition en hue
+        ax = sns.countplot(y=column_name, hue="Attrition", data=df)
 
         # Afficher le titre et les étiquettes des axes
         plt.title('Histogramme des modalités de {}'.format(column_name))
-        plt.xlabel(column_name)
-        plt.ylabel('Nombre d\'employés')
+        plt.xlabel('Effectif des employés')
+        plt.ylabel(column_name)
 
         # Afficher la légende
-        plt.legend(title='Attrition', loc='upper right')
+        plt.legend(title='Attrition', loc='lower right')
 
         # Afficher le plot
         plt.show()
@@ -131,7 +177,7 @@ def numerical_variables(df):
 
 
 
-def select_numeric_columns(df):
+def select_numeric_columns_corr(df):
     """
     Fonction pour sélectionner les variables de type numérique dans un DataFrame.
     
@@ -179,7 +225,7 @@ def boxplot_numeric_variables(df):
     # Afficher les boxplots pour chaque variable
     for i, column in enumerate(int64_columns):
         plt.subplot(num_rows, num_cols, i + 1)
-        sns.boxplot(data=df, y="Attrition", x=df[column], hue='Attrition')
+        sns.boxplot(data=df, x="Attrition", y=df[column], hue='Attrition')
         plt.title(column)
     
     # Ajuster l'espacement entre les sous-graphiques
@@ -187,6 +233,7 @@ def boxplot_numeric_variables(df):
     
     # Afficher les graphiques
     plt.show()
+
 
 
 def remove_outliers(df):
@@ -211,7 +258,7 @@ def remove_outliers(df):
         # Remplacer les valeurs atypiques par les limites inférieures et supérieures
         df[var] = df[var].apply(lambda x: min(upper, max(x, lower)))
     
-    return df
+    boxplot_numeric_variables(df)
 
 
 
@@ -233,8 +280,8 @@ def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variable
     - best_model: Meilleur temps d'exécution
     """
     models = [
-        ('La Regression Logistique', LogisticRegression()),
-        ('La Forêt Aléatoire', RandomForestClassifier())
+        ('La Forêt Aléatoire', RandomForestClassifier()),
+        ('La Regression Logistique', LogisticRegression())
     ]
     
     best_model = None
@@ -261,7 +308,6 @@ def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variable
         
         # Prédictions
         y_pred = pipeline.predict(X_test)
-        y_prob = pipeline.predict_proba(X_test)[:, 1]
         
         # Calcul et affichage des métriques
         print(f"Metriques pour {model_name}:")
@@ -269,7 +315,7 @@ def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variable
         
         # Affichage de la matrice de confusion
         cm = confusion_matrix(y_test, y_pred)
-        plt.figure(figsize=(8, 6))
+        plt.figure(figsize=(6, 4))
         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=['No', 'Yes'], yticklabels=['No', 'Yes'])
         plt.xlabel('Predicted labels')
         plt.ylabel('True labels')
@@ -278,11 +324,13 @@ def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variable
         
         # Convertir les étiquettes en valeurs binaires
         y_test_binary = y_test.replace({"No": 0, "Yes": 1})
+        # Récupération des scores liés aux prédictions
+        y_prob = pipeline.predict_proba(X_test)[:, 1]
         
         # Calcul et affichage de la courbe ROC
         fpr, tpr, _ = roc_curve(y_test_binary, y_prob)
         roc_auc = roc_auc_score(y_test_binary, y_prob)
-        plt.figure()
+        plt.figure(figsize=(6, 4))
         plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
         plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
         plt.xlim([0.0, 1.0])
@@ -307,13 +355,13 @@ def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variable
         model_time.append(runtime)
     
     # Affichage du meilleur modèle
-    print("================================")
+    print("====================================")
     print("Best Model:", model_name)
-    print("--------------------------------")
+    print("------------------------------------")
     print("Best Accuracy:", best_accuracy)
-    print("--------------------------------")
+    print("------------------------------------")
     print("Best Runtime:", best_runtime)
-    print("================================")
-    
+    print("====================================")
+
     return best_model, model_acc, model_time
 
