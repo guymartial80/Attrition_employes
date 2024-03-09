@@ -15,10 +15,11 @@ import time
 
 def importer_affichage_dataset(chemin_fichier):
     """
-    Cette fonction importe un fichier Excel ou CSV et affiche les 5 premières lignes du DataFrame.
+    Cette fonction importe un fichier Excel ou CSV en indiquant seulement en paramètre le nom du fichier et son extension,
+    à condition que ce dernier soit dans le même repertoire que le présent fichier.
     
     Args:
-    - chemin_fichier : Chemin vers le fichier à importer (Excel ou CSV).
+    - chemin_fichier : Nom du fichier et son extension ou Chemin vers le fichier à importer (Excel ou CSV).
     
     Returns:
     - df : DataFrame contenant les données du fichier.
@@ -33,24 +34,23 @@ def importer_affichage_dataset(chemin_fichier):
     else:
         raise ValueError("Le fichier doit être au format Excel (.xlsx) ou CSV (.csv)")
     
-    
     return df
 
 
 
 def plot_categorical_column(df, column):
-        """
-        Fonction interne pour tracer le graphique de la variable catégorielle.
-        """
-        plt.figure(figsize=(5, 3))
-        # Créer un countplot avec la variable catégorielle en x et Attrition en hue
-        ax = sns.countplot(y=column, hue=column, data=df)
+    """
+    Fonction interne pour tracer le graphique de la variable catégorielle.
+    """
+    plt.figure(figsize=(5, 3))
+    # Créer un countplot avec la variable catégorielle en x et Attrition en hue
+    ax = sns.countplot(y=column, hue=column, data=df)
 
-        # Ajouter les libellés sur l'axe des abscisses dans le sens vertical
-        plt.xlabel('Effectif des employés par modalités')
-        plt.ylabel(column)
-        plt.title(f'Comptage des valeurs de {column}')
-        plt.show()
+    # Ajouter les libellés sur l'axe des abscisses dans le sens vertical
+    plt.xlabel('Effectif des employés par modalités')
+    plt.ylabel(column)
+    plt.title(f'Comptage des valeurs de {column}')
+    plt.show()
 
 
 
