@@ -31,6 +31,17 @@ A cette étape, plusieurs démarches ont été sollicitées pour faciliter l'ana
 - Séparation en base d'entrainement, validation et test;
 - Modélisation, évaluation de l'algorithme et choix du meilleur modèle.
 
+### 2.6 Résultats obtenus
+- Le processus de modélisation a revélé, après détermination du meilleur modèle de Machine Learning et recherche des meilleurs hyperparamètres à adopter pour ledit modèle, que le SVM est meilleur que la Régression Logistique dans ce contexte et les hyperparamètres associés audit modèle sont  :
+  - {'model__criterion': 'entropy';
+  - 'model__max_depth': 7;
+  - 'model__n_estimators': 100})
+La courbe ROC du meilleur modèle est ci-dessous illustrée :
+  - 'model__C': 0.1;
+  - 'model__gamma': 0.01;
+  - 'model__kernel': 'rbf'
+
+![Results](https://github.com/guymartial80/Attrition_employes/blob/main/best_model_svm_optimized.png)
 
 ## 3. LIBRAIRIES UTILISEES
 ![Static Badge](https://img.shields.io/badge/Pandas-black?style=for-the-badge&logo=Pandas) ![Static Badge](https://img.shields.io/badge/Scikit-learn-black?style=for-the-badge&logo=Scikit-learn) ![Static Badge](https://img.shields.io/badge/Numpy-black?style=for-the-badge&logo=Numpy) ![Static Badge](https://img.shields.io/badge/Matplotlib-black?style=for-the-badge&logo=Matplotlib) ![Static Badge](https://img.shields.io/badge/Seaborn-black?style=for-the-badge&logo=Seaborn)
