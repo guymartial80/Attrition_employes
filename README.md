@@ -1,3 +1,9 @@
+## SOMMAIRE
+
+- [DESCRIPTION DU PROJET](#1.-DESCRIPTION)
+- [ETAPES DE REALISATION](#2.-ETAPES-DE-REALISATION)
+- [LIBRAIRIES UTILISEES](#3.-LIBRAIRIES-UTILISEES)
+
 ## 1. DESCRIPTION
 
 Cette étude se concentre sur l'attrition des employés chez IBM, visant à identifier les variables qui influencent la décision d'un employé de quitter l'entreprise. En utilisant les données fournies, nous chercherons à construire un modèle prédictif capable d'estimer avec précision la probabilité qu'un employé quitte son poste.
@@ -32,14 +38,11 @@ A cette étape, plusieurs démarches ont été sollicitées pour faciliter l'ana
 - Modélisation, évaluation de l'algorithme et choix du meilleur modèle.
 
 ### 2.6 Résultats obtenus
-- Le processus de modélisation a revélé, après détermination du meilleur modèle de Machine Learning et recherche des meilleurs hyperparamètres à adopter pour ledit modèle, que le SVM est meilleur que la Régression Logistique dans ce contexte et les hyperparamètres associés audit modèle sont  :
-  - {'model__criterion': 'entropy';
-  - 'model__max_depth': 7;
-  - 'model__n_estimators': 100})
-La courbe ROC du meilleur modèle est ci-dessous illustrée :
+Le processus de modélisation a revélé, après détermination du meilleur modèle de Machine Learning et recherche des meilleurs hyperparamètres à adopter pour ledit modèle, que le SVM est meilleur que la Régression Logistique dans ce contexte et les hyperparamètres associés audit modèle sont  :
   - 'model__C': 0.1;
   - 'model__gamma': 0.01;
   - 'model__kernel': 'rbf'
+La courbe ROC du meilleur modèle est ci-dessous illustrée :
 
 ![Results](https://github.com/guymartial80/Attrition_employes/blob/main/best_model_svm_optimized.png)
 
