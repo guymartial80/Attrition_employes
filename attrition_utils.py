@@ -262,106 +262,249 @@ def remove_outliers(df):
 
 
 
-def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variables, cat_vars):
-    """
-    Cette fonction affichera les métriques, la courbe ROC et la matrice de confusion pour chaque modèle, 
-    puis sélectionnera le meilleur modèle en fonction de l'exactitude de la validation et du temps d'exécution.
+# def modelling(X_train, y_train, X_val, y_val, X_test, y_test, numerical_variables, cat_vars):
+#     """
+#     Cette fonction affichera les métriques, la courbe ROC et la matrice de confusion pour chaque modèle, 
+#     puis sélectionnera le meilleur modèle en fonction de l'exactitude de la validation et du temps d'exécution.
     
-    Args:
-    - X_train et y_train: Base d'entrainement.
-    - X_val et y_val: Base de validation.
-    - X_test et y_test: Base de test.
-    - numerical_variables: Variables de type numérique du dataset.
-    - cat_vars: Variables de type catégoriel en dehors de la variable cible "Attritioon".
+#     Args:
+#     - X_train et y_train: Base d'entrainement.
+#     - X_val et y_val: Base de validation.
+#     - X_test et y_test: Base de test.
+#     - numerical_variables: Variables de type numérique du dataset.
+#     - cat_vars: Variables de type catégoriel en dehors de la variable cible "Attritioon".
     
-    Returns:
-    - best_model: Nom du meilleur modèle pandas avec les outliers remplacés par s. best_model, model_acc, model_time
-    - model_acc: Meilleur score
-    - best_model: Meilleur temps d'exécution
-    """
-    models = [
-        ('La Forêt Aléatoire', RandomForestClassifier()),
-        ('La Regression Logistique', LogisticRegression())
-    ]
+#     Returns:
+#     - best_model: Nom du meilleur modèle pandas avec les outliers remplacés par s. best_model, model_acc, model_time
+#     - model_acc: Meilleur score
+#     - best_model: Meilleur temps d'exécution
+#     """
+#     models = [
+#         ('La Forêt Aléatoire', RandomForestClassifier()),
+#         ('La Regression Logistique', LogisticRegression())
+#     ]
     
+#     best_model = None
+#     best_accuracy = 0
+#     best_runtime = float('inf')
+#     model_acc = []
+#     model_time = []
+    
+#     for model_name, model in models:
+#         start = time.time()
+        
+#         # Création du pipeline avec le préprocesseur et le modèle
+#         pipeline = Pipeline(steps=[
+#             ('preprocessor', ColumnTransformer(
+#                 transformers=[
+#                     ('num', StandardScaler(), numerical_variables),
+#                     ('cat', OneHotEncoder(), cat_vars)
+#                 ]
+#             )),
+#             ('model', model)
+#         ])
+        
+#         pipeline.fit(X_train, y_train)
+        
+#         # Prédictions
+#         y_pred = pipeline.predict(X_test)
+        
+#         # Calcul et affichage des métriques
+#         print(f"Metriques pour {model_name}:")
+#         print(classification_report(y_test, y_pred))
+        
+#         # Affichage de la matrice de confusion
+#         cm = confusion_matrix(y_test, y_pred)
+#         plt.figure(figsize=(6, 4))
+#         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=['No', 'Yes'], yticklabels=['No', 'Yes'])
+#         plt.xlabel('Predicted labels')
+#         plt.ylabel('True labels')
+#         plt.title(f'Matrice de Confusion pour {model_name}')
+#         plt.show()
+        
+#         # Convertir les étiquettes en valeurs binaires
+#         y_test_binary = y_test.replace({"No": 0, "Yes": 1})
+#         # Récupération des scores liés aux prédictions
+#         y_prob = pipeline.predict_proba(X_test)[:, 1]
+        
+#         # Calcul et affichage de la courbe ROC
+#         fpr, tpr, _ = roc_curve(y_test_binary, y_prob)
+#         roc_auc = roc_auc_score(y_test_binary, y_prob)
+#         plt.figure(figsize=(6, 4))
+#         plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+#         plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+#         plt.xlim([0.0, 1.0])
+#         plt.ylim([0.0, 1.05])
+#         plt.xlabel('False Positive Rate')
+#         plt.ylabel('True Positive Rate')
+#         plt.title(f'Receiver Operating Characteristic for {model_name}')
+#         plt.legend(loc="lower right")
+#         plt.show()
+        
+#         # Mise à jour du meilleur modèle
+#         accuracy = accuracy_score(y_val, pipeline.predict(X_val))
+#         stop = time.time()
+#         runtime = stop - start
+#         if accuracy > best_accuracy or (accuracy == best_accuracy and runtime < best_runtime):
+#             best_model = pipeline
+#             best_accuracy = accuracy
+#             best_runtime = runtime
+        
+#         # Stockage des performances
+#         model_acc.append(accuracy)
+#         model_time.append(runtime)
+    
+#     # Affichage du meilleur modèle
+#     print("====================================")
+#     print("Best Model:", model_name)
+#     print("------------------------------------")
+#     print("Best Accuracy:", best_accuracy)
+#     print("------------------------------------")
+#     print("Best Runtime:", best_runtime)
+#     print("====================================")
+
+#     return best_model, model_acc, model_time
+
+
+
+def metrics_best_model(pipeline, X_test, y_test):
+    # Prédictions sur l'ensemble de validation
+    y_pred = pipeline.predict(X_test)
+    
+    # Convertir les valeurs de y_val en valeurs numériques
+    y_test_numeric = y_test.replace({'Yes': 1, 'No': 0})
+    
+    # Convertir les valeurs de y_pred en valeurs numériques
+    y_pred_numeric = pd.Series(y_pred).replace({'Yes': 1, 'No': 0})
+    
+    # Calcul du rapport de classification
+    cr = classification_report(y_test_numeric, y_pred_numeric)
+    print("Classification Report:")
+    print(cr)
+
+    # Calcul de la matrice de confusion
+    cm = confusion_matrix(y_test_numeric, y_pred_numeric)
+
+    # Affichage du graphique de la matrice de confusion et de la courbe ROC AUC
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Matrice de confusion
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False, ax=axes[0])
+    axes[0].set_xlabel('Predicted labels')
+    axes[0].set_ylabel('True labels')
+    axes[0].set_title('Confusion Matrix')
+
+    # Courbe ROC AUC
+    y_pred_proba = pipeline.predict_proba(X_test)[:, 1]
+    fpr, tpr, thresholds = roc_curve(y_test_numeric, y_pred_proba)
+    roc_auc = roc_auc_score(y_test_numeric, y_pred_proba)
+
+    # Obtenir le nom du modèle à partir du pipeline
+    model_name = pipeline.named_steps['model'].__class__.__name__
+    
+    axes[1].plot(fpr, tpr, color='orange', lw=2, label=f'{model_name} - ROC curve (area = %0.2f)' % roc_auc)
+    axes[1].plot([0, 1], [0, 1], 'k--')
+    axes[1].set_xlim([0.0, 1.0])
+    axes[1].set_ylim([0.0, 1.05])
+    axes[1].set_xlabel('False Positive Rate')
+    axes[1].set_ylabel('True Positive Rate')
+    axes[1].set_title('Receiver Operating Characteristic (ROC)')
+    axes[1].legend(loc="lower right")
+
+    plt.tight_layout()
+    plt.show()
+
+
+def evaluate_and_find_best_model(pipelines, X_val, y_val, X_train, y_train, X_test, y_test):
     best_model = None
-    best_accuracy = 0
-    best_runtime = float('inf')
-    model_acc = []
-    model_time = []
+    best_score = 0
     
-    for model_name, model in models:
-        start = time.time()
-        
-        # Création du pipeline avec le préprocesseur et le modèle
-        pipeline = Pipeline(steps=[
-            ('preprocessor', ColumnTransformer(
-                transformers=[
-                    ('num', StandardScaler(), numerical_variables),
-                    ('cat', OneHotEncoder(), cat_vars)
-                ]
-            )),
-            ('model', model)
-        ])
-        
-        pipeline.fit(X_train, y_train)
-        
-        # Prédictions
-        y_pred = pipeline.predict(X_test)
-        
-        # Calcul et affichage des métriques
-        print(f"Metriques pour {model_name}:")
-        print(classification_report(y_test, y_pred))
-        
-        # Affichage de la matrice de confusion
-        cm = confusion_matrix(y_test, y_pred)
-        plt.figure(figsize=(6, 4))
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=['No', 'Yes'], yticklabels=['No', 'Yes'])
-        plt.xlabel('Predicted labels')
-        plt.ylabel('True labels')
-        plt.title(f'Matrice de Confusion pour {model_name}')
+    for model_name, pipeline in pipelines.items():
+        print(f"Evaluation du modèle {model_name}:")
+        # Prédictions sur l'ensemble de validation
+        y_pred = pipeline.predict(X_val)
+
+        # Convertir les valeurs de y_val en valeurs numériques
+        y_val_numeric = y_val.replace({'Yes': 1, 'No': 0})
+
+        # Convertir les valeurs de y_pred en valeurs numériques
+        y_pred_numeric = pd.Series(y_pred).replace({'Yes': 1, 'No': 0})
+
+        # Calcul du rapport de classification
+        cr = classification_report(y_val_numeric, y_pred_numeric)
+        print("Classification Report:")
+        print(cr)
+
+        # Calcul de la matrice de confusion
+        cm = confusion_matrix(y_val_numeric, y_pred_numeric)
+
+        # Affichage du graphique de la matrice de confusion et de la courbe ROC sur la même ligne
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+        # Matrice de confusion
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False, ax=axes[0])
+        axes[0].set_xlabel('Predicted labels')
+        axes[0].set_ylabel('True labels')
+        axes[0].set_title('Confusion Matrix')
+
+        # Courbe ROC AUC
+        y_pred_proba = pipeline.predict_proba(X_val)[:, 1]
+        fpr, tpr, thresholds = roc_curve(y_val_numeric, y_pred_proba)
+        auc = roc_auc_score(y_val_numeric, y_pred_proba)
+        axes[1].plot(fpr, tpr, color='orange', label='ROC curve (area = %0.2f)' % auc)
+        axes[1].plot([0, 1], [0, 1], 'k--')
+        axes[1].set_xlim([0.0, 1.0])
+        axes[1].set_ylim([0.0, 1.05])
+        axes[1].set_xlabel('False Positive Rate')
+        axes[1].set_ylabel('True Positive Rate')
+        axes[1].set_title('Receiver Operating Characteristic (ROC)')
+        axes[1].legend(loc="lower right")
+
+        plt.tight_layout()
         plt.show()
         
-        # Convertir les étiquettes en valeurs binaires
-        y_test_binary = y_test.replace({"No": 0, "Yes": 1})
-        # Récupération des scores liés aux prédictions
-        y_prob = pipeline.predict_proba(X_test)[:, 1]
-        
-        # Calcul et affichage de la courbe ROC
-        fpr, tpr, _ = roc_curve(y_test_binary, y_prob)
-        roc_auc = roc_auc_score(y_test_binary, y_prob)
-        plt.figure(figsize=(6, 4))
-        plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
-        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title(f'Receiver Operating Characteristic for {model_name}')
-        plt.legend(loc="lower right")
-        plt.show()
-        
-        # Mise à jour du meilleur modèle
-        accuracy = accuracy_score(y_val, pipeline.predict(X_val))
-        stop = time.time()
-        runtime = stop - start
-        if accuracy > best_accuracy or (accuracy == best_accuracy and runtime < best_runtime):
+        # Comparer avec le meilleur score actuel
+        if auc > best_score:
             best_model = pipeline
-            best_accuracy = accuracy
-            best_runtime = runtime
-        
-        # Stockage des performances
-        model_acc.append(accuracy)
-        model_time.append(runtime)
+            best_score = auc
     
-    # Affichage du meilleur modèle
-    print("====================================")
-    print("Best Model:", model_name)
-    print("------------------------------------")
-    print("Best Accuracy:", best_accuracy)
-    print("------------------------------------")
-    print("Best Runtime:", best_runtime)
-    print("====================================")
+    print("Meilleur modèle sélectionné:")
+    print(best_model)
 
-    return best_model, model_acc, model_time
+    # Identifier le meilleur modèle en fonction des performances sur les données de validation
+    best_model_name = max(pipelines.keys(), key=lambda k: roc_auc_score(y_val_numeric, pipeline.predict_proba(X_val)[:, 1]))
 
+    # Définir la grille de recherche des hyperparamètres pour le meilleur modèle
+    if best_model_name == 'svmClassifier':
+        # Définir la grille de recherche des hyperparamètres pour le Support Vector Machine
+        param_grid = {
+            'model__C': [0.1, 10, 100],
+            'model__kernel': ['rbf', 'linear'],
+            'model__gamma': [0.01, 0.1, 1]
+        }  
+        best_model_pipeline = pipelines[best_model_name]
+
+    elif best_model_name == 'LogisticRegression':
+        # Définir la grille de recherche des hyperparamètres pour la LogisticRegression
+        param_grid = [{
+            'penalty':['l1','l2'],
+            'C':[0.001,0.01,0.05,0.1,0.5,1.0,10.0,100.0]
+        }]
+
+        best_model_pipeline = pipelines[best_model_name]
+
+    # Exécuter la GridSearchCV sur le meilleur modèle avec la grille de recherche des hyperparamètres
+    grid_search = GridSearchCV(best_model_pipeline, param_grid, cv=5, scoring='roc_auc')
+    grid_search.fit(X_train, y_train)
+
+    # Identifier les meilleurs hyperparamètres
+    best_params = grid_search.best_params_
+
+    # Entraîner le modèle avec les meilleurs hyperparamètres sur l'ensemble de données complet
+    best_model_pipeline.set_params(**best_params)
+    best_model_pipeline.fit(X_test, y_test)
+    
+    # Afficher le rapport de classification, la matrice de confusion et la courbe ROC pour le meilleur modèle
+    metrics_best_model(best_model_pipeline, X_test, y_test)
+    
+    return best_model_pipeline, best_params
